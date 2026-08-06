@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tasks · Cyber Range Orchestrator (Static Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+<style>
+  .detail-row td { background: var(--surface-50); padding: 0; }
+  .detail-inner { padding: 1rem 1.4rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; font-size: .8rem; }
+  .detail-inner dt { color: var(--surface-500); font-size: .7rem; text-transform: uppercase; letter-spacing: .03em; margin-bottom: .15rem; }
+  .detail-inner dd { margin: 0 0 .7rem; color: var(--surface-800); font-family: var(--font-mono); font-size: .78rem; }
+  .expand-caret { transition: transform .12s; display: inline-block; }
+  .expand-caret.open { transform: rotate(90deg); }
+</style>
+</head>
+<body>
+<template id="cro-page-template">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Tasks</h1>
+      <p class="page-subtitle">Scheduled and one-off jobs run against range hosts: power, snapshot, shell, and webhook actions.</p>
+    </div>
+    <div style="position:relative;">
+      <button class="btn btn-primary" id="new-task-btn">New task <i class="pi pi-angle-down"></i></button>
+      <div class="dropdown-menu" id="new-task-menu" style="position:absolute;top:calc(100% + 6px);right:0;background:var(--surface-0);border:1px solid var(--border-color);border-radius:var(--radius-md);box-shadow:0 12px 30px var(--shadow-color);min-width:170px;padding:.4rem;z-index:40;display:none;">
+        <button data-demo-toast="New power task" data-demo-icon="pi-power-off" style="display:flex;gap:.5rem;width:100%;padding:.5rem .6rem;border:none;background:transparent;text-align:left;font-size:.82rem;cursor:pointer;border-radius:6px;"><i class="pi pi-power-off"></i> Power</button>
+        <button data-demo-toast="New snapshot task" data-demo-icon="pi-camera" style="display:flex;gap:.5rem;width:100%;padding:.5rem .6rem;border:none;background:transparent;text-align:left;font-size:.82rem;cursor:pointer;border-radius:6px;"><i class="pi pi-camera"></i> Snapshot</button>
+        <button data-demo-toast="New shell command task" data-demo-icon="pi-code" style="display:flex;gap:.5rem;width:100%;padding:.5rem .6rem;border:none;background:transparent;text-align:left;font-size:.82rem;cursor:pointer;border-radius:6px;"><i class="pi pi-code"></i> Shell Command</button>
+        <button data-demo-toast="New URI task" data-demo-icon="pi-link" style="display:flex;gap:.5rem;width:100%;padding:.5rem .6rem;border:none;background:transparent;text-align:left;font-size:.82rem;cursor:pointer;border-radius:6px;"><i class="pi pi-link"></i> URI</button>
+      </div>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <thead><tr><th style="width:24px;"></th><th>Name</th><th>Description</th><th>Project</th><th>Configuration</th></tr></thead>
+    <tbody id="task-rows"></tbody>
+  </table>
+</template>
+
+<script>
+  const TASKS = [
+    { name: "nightly-snapshot", desc: "Snapshot all lab hosts before daily reset", project: "Range Alpha", type: "snapshot",
+      schedule: "Recurring · 02:00 UTC", start: "2026-08-06 02:00", tags: "All Tags", backupVM: "Yes", nodes: "core-sw-01, dmz-sw-01, corp-sw-01", snapshotAction: "Create", snapshotName: "nightly-auto" },
+    { name: "power-cycle-labs", desc: "Restart all workstation VMs between sessions", project: "Phishing Response Lab", type: "power",
+      schedule: "Immediate", start: "—", tags: "blue-team", backupVM: "No", nodes: "ws-blue-01, ws-blue-02", powerJobName: "Restart" },
+    { name: "inject-phishing-mail", desc: "Deliver scripted phishing email to mail-01 inbox", project: "Phishing Response Lab", type: "shell",
+      schedule: "One-time", start: "2026-08-06 10:30", tags: "soc", backupVM: "No", nodes: "mail-01", command: "python3 inject_email.py --template=invoice_lure" },
+    { name: "webhook-scoring-ping", desc: "Notify scoring engine when the range boots", project: "Range Alpha", type: "uri",
+      schedule: "Immediate", start: "—", tags: "All Tags", backupVM: "No", uriMethod: "POST", uriUrl: "https://scoring.internal/api/v1/range/ready" },
+  ];
+
+  const TYPE_ICON = { snapshot: "pi-camera", power: "pi-power-off", shell: "pi-code", uri: "pi-link" };
+
+  function detailRow(t, idx) {
+    let extra = "";
+    if (t.type === "snapshot") extra = `<div><dt>Snapshot Action</dt><dd>${t.snapshotAction}</dd><dt>Snapshot Name</dt><dd>${t.snapshotName}</dd></div>`;
+    if (t.type === "power") extra = `<div><dt>Power Action</dt><dd>${t.powerJobName}</dd></div>`;
+    if (t.type === "shell") extra = `<div><dt>Shell Command</dt><dd>${t.command}</dd></div>`;
+    if (t.type === "uri") extra = `<div><dt>Method</dt><dd>${t.uriMethod}</dd><dt>URL</dt><dd style="word-break:break-all;">${t.uriUrl}</dd></div>`;
+    return `
+      <tr class="detail-row" id="detail-${idx}" style="display:none;">
+        <td colspan="5">
+          <div class="detail-inner">
+            <div><dt>Task Type</dt><dd style="text-transform:capitalize;">${t.type}</dd><dt>Schedule</dt><dd>${t.schedule}</dd><dt>Start Time</dt><dd>${t.start}</dd></div>
+            <div><dt>Target Nodes</dt><dd style="font-family:var(--font-family);">${t.nodes || "—"}</dd><dt>Tags</dt><dd style="font-family:var(--font-family);">${t.tags}</dd><dt>Backup VM</dt><dd style="font-family:var(--font-family);">${t.backupVM}</dd></div>
+            ${extra}
+          </div>
+        </td>
+      </tr>`;
+  }
+
+  function croAfterMount() {
+    document.getElementById("task-rows").innerHTML = TASKS.map((t, i) => `
+      <tr onclick="toggleTask(${i})">
+        <td><i class="pi pi-angle-right expand-caret" id="caret-${i}"></i></td>
+        <td><div class="cell-primary"><span class="row-icon" style="background:var(--primary-500);"><i class="pi ${TYPE_ICON[t.type]}"></i></span>${t.name}</div></td>
+        <td class="cell-muted">${t.desc}</td>
+        <td class="cell-muted">${t.project}</td>
+        <td class="cell-muted">${t.schedule}</td>
+      </tr>
+      ${detailRow(t, i)}
+    `).join("");
+
+    window.toggleTask = (i) => {
+      const row = document.getElementById("detail-" + i);
+      const caret = document.getElementById("caret-" + i);
+      const open = row.style.display !== "none";
+      row.style.display = open ? "none" : "table-row";
+      caret.classList.toggle("open", !open);
+    };
+
+    const btn = document.getElementById("new-task-btn");
+    const menu = document.getElementById("new-task-menu");
+    btn.addEventListener("click", (e) => { e.stopPropagation(); menu.style.display = menu.style.display === "block" ? "none" : "block"; });
+    document.addEventListener("click", () => menu.style.display = "none");
+  }
+  window.croAfterMount = croAfterMount;
+  window.CRO_PAGE_CONFIG = { page: "tasks", crumb: "Tasks", title: "Tasks" };
+</script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

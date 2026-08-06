@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Projects · Cyber Range Orchestrator (Static Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+<style>
+  .dropdown { position: relative; }
+  .dropdown-menu {
+    position: absolute; top: calc(100% + 6px); right: 0; background: var(--surface-0); border: 1px solid var(--border-color);
+    border-radius: var(--radius-md); box-shadow: 0 12px 30px var(--shadow-color); min-width: 190px; padding: .4rem; z-index: 40; display: none;
+  }
+  .dropdown-menu.open { display: block; }
+  .dropdown-menu a, .dropdown-menu button {
+    display: flex; align-items: center; gap: .55rem; width: 100%; padding: .55rem .6rem; border-radius: var(--radius-sm);
+    border: none; background: transparent; text-align: left; font-size: .82rem; color: var(--surface-700); cursor: pointer; text-decoration: none;
+  }
+  .dropdown-menu a:hover, .dropdown-menu button:hover { background: var(--surface-50); }
+</style>
+</head>
+<body>
+<template id="cro-page-template">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Projects</h1>
+      <p class="page-subtitle">Cyber ranges you can open, clone, or deploy.</p>
+    </div>
+    <div class="dropdown">
+      <button class="btn btn-primary" id="new-project-btn">
+        New Project <i class="pi pi-angle-down"></i>
+      </button>
+      <div class="dropdown-menu" id="new-project-menu">
+        <button><i class="pi pi-plus"></i> Blank Project</button>
+        <button><i class="pi pi-copy"></i> From Template</button>
+        <button><i class="pi pi-upload"></i> Import Project</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-toolbar">
+    <div class="search-box">
+      <i class="pi pi-search"></i>
+      <input type="text" placeholder="Search projects…" />
+    </div>
+    <div class="flex gap-2">
+      <span class="tab active" style="border:none;padding:.4rem .8rem;background:var(--primary-100);border-radius:999px;">Projects</span>
+      <span class="tab" style="border:none;padding:.4rem .8rem;">Templates</span>
+      <span class="tab" style="border:none;padding:.4rem .8rem;">Trash</span>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width:28px;"><input type="checkbox" /></th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Tags</th>
+        <th>Created By</th>
+        <th>Created On</th>
+        <th>Changed On</th>
+        <th style="text-align:right;">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="project-rows"></tbody>
+  </table>
+</template>
+
+<script>
+  const PROJECTS = [
+    { id: "range-alpha", name: "Range Alpha — Enterprise Segment", desc: "Layered DMZ / corp / OT topology for red-blue exercises", tags: ["red-team", "enterprise"], by: "jane.doe", created: "2026-05-02", changed: "2026-08-01" },
+    { id: "phish-lab", name: "Phishing Response Lab", desc: "Mail gateway, EDR-instrumented endpoints, SOC workstation", tags: ["blue-team", "soc"], by: "mtanaka", created: "2026-04-18", changed: "2026-07-29" },
+    { id: "ics-sandbox", name: "ICS/SCADA Sandbox", desc: "PLC + HMI simulation network, isolated from corp VLANs", tags: ["ics", "isolated"], by: "jane.doe", created: "2026-03-11", changed: "2026-07-22" },
+    { id: "ad-hardening", name: "Active Directory Hardening", desc: "Tiered AD forest with vulnerable defaults for training", tags: ["identity", "training"], by: "r.alvarez", created: "2026-02-27", changed: "2026-06-30" },
+    { id: "cloud-perimeter", name: "Cloud Perimeter Exercise", desc: "Hybrid on-prem/cloud edge with exposed misconfigurations", tags: ["cloud", "purple-team"], by: "mtanaka", created: "2026-01-15", changed: "2026-06-10" },
+  ];
+
+  function initials(name) {
+    return name.split(".").map(p => p[0]).join("").slice(0,2).toUpperCase();
+  }
+
+  function croAfterMount() {
+    const tbody = document.getElementById("project-rows");
+    tbody.innerHTML = PROJECTS.map(p => `
+      <tr onclick="window.location.href='map.html?project=${p.id}'">
+        <td onclick="event.stopPropagation()"><input type="checkbox" /></td>
+        <td>
+          <div class="cell-primary">
+            <span class="row-icon" style="background:linear-gradient(135deg,var(--primary-400),var(--primary-700));"><i class="pi pi-sitemap"></i></span>
+            ${p.name}
+          </div>
+        </td>
+        <td class="cell-muted">${p.desc}</td>
+        <td>${p.tags.map(t => `<span class="chip">${t}</span>`).join("")}</td>
+        <td class="cell-muted">${p.by}</td>
+        <td class="cell-muted">${p.created}</td>
+        <td class="cell-muted">${p.changed}</td>
+        <td onclick="event.stopPropagation()">
+          <div class="row-actions">
+            <button class="btn-icon" title="Open"><i class="pi pi-external-link"></i></button>
+            <button class="btn-icon" title="Clone"><i class="pi pi-copy"></i></button>
+            <button class="btn-icon" title="More"><i class="pi pi-ellipsis-v"></i></button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
+
+    const btn = document.getElementById("new-project-btn");
+    const menu = document.getElementById("new-project-menu");
+    btn.addEventListener("click", (e) => { e.stopPropagation(); menu.classList.toggle("open"); });
+    document.addEventListener("click", () => menu.classList.remove("open"));
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("new") || params.get("import")) {
+      menu.classList.add("open");
+    }
+  }
+  window.croAfterMount = croAfterMount;
+  window.CRO_PAGE_CONFIG = { page: "projects", crumb: "Projects", title: "Projects" };
+</script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

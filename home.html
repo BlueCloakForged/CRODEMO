@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Home · Cyber Range Orchestrator (Static Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+<template id="cro-page-template">
+  <div class="home-wrap">
+    <div class="card home-card">
+      <h2>Get Started</h2>
+      <div class="home-actions">
+        <a class="big-btn" href="projects.html?new=1"><i class="pi pi-plus"></i>Create new project</a>
+        <a class="big-btn" href="projects.html"><i class="pi pi-folder-open"></i>Open project</a>
+        <a class="big-btn" href="projects.html?import=1"><i class="pi pi-upload"></i>Import Project</a>
+      </div>
+      <p>Create a new, open or import a project to get started.</p>
+
+      <div class="recent-title">Open Recent</div>
+      <a class="recent-item" href="map.html?project=range-alpha" style="text-decoration:none;">
+        <i class="pi pi-folder"></i>
+        <div>
+          <div class="t">Range Alpha — Enterprise Segment</div>
+          <div class="d">Layered DMZ / corp / OT topology for red-blue exercises</div>
+        </div>
+      </a>
+      <a class="recent-item" href="map.html?project=phish-lab" style="text-decoration:none;">
+        <i class="pi pi-folder"></i>
+        <div>
+          <div class="t">Phishing Response Lab</div>
+          <div class="d">Mail gateway, EDR-instrumented endpoints, SOC workstation</div>
+        </div>
+      </a>
+      <a class="recent-item" href="map.html?project=ics-sandbox" style="text-decoration:none;">
+        <i class="pi pi-folder"></i>
+        <div>
+          <div class="t">ICS/SCADA Sandbox</div>
+          <div class="d">PLC + HMI simulation network, isolated from corp VLANs</div>
+        </div>
+      </a>
+    </div>
+  </div>
+  <div class="footer-version">
+    <span>Cyber Range Orchestrator |</span>
+    <span>Version 2.1.5 |</span>
+    <span>Server 2.1.5</span>
+  </div>
+</template>
+
+<script>
+  window.CRO_PAGE_CONFIG = { page: "home", crumb: "Home", title: "Home" };
+</script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

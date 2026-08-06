@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>History · Cyber Range Orchestrator (Static Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+<template id="cro-page-template">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">History</h1>
+      <p class="page-subtitle">Audit trail of actions taken across projects, devices, and users.</p>
+    </div>
+  </div>
+
+  <div class="table-toolbar">
+    <div class="search-box"><i class="pi pi-search"></i><input type="text" placeholder="Search history…" /></div>
+  </div>
+
+  <table class="data-table">
+    <thead><tr><th>Task</th><th>Category</th><th>Date Time</th><th>Item ID</th><th>User ID</th></tr></thead>
+    <tbody id="history-rows"></tbody>
+  </table>
+</template>
+
+<script>
+  const HISTORY = [
+    { task: "Created project", category: "Project", dt: "2026-08-06 09:12", item: "range-alpha", user: "jane.doe" },
+    { task: "Saved map", category: "Map", dt: "2026-08-06 08:47", item: "range-alpha", user: "jane.doe" },
+    { task: "Ran playbook: harden-windows-baseline.yml", category: "Automation", dt: "2026-08-05 14:12", item: "dc-01", user: "r.alvarez" },
+    { task: "Deleted node", category: "Map", dt: "2026-08-05 11:30", item: "old-relay-02", user: "mtanaka" },
+    { task: "Added user", category: "Administration", dt: "2026-08-04 16:02", item: "n.osei", user: "jane.doe" },
+    { task: "Imported device template", category: "Devices", dt: "2026-08-04 10:15", item: "Security Onion", user: "mtanaka" },
+    { task: "Cloned project", category: "Project", dt: "2026-08-03 15:44", item: "phish-lab", user: "r.alvarez" },
+  ];
+  const CATEGORY_ICON = {
+    Project: "pi-folder", Map: "pi-sitemap", Automation: "pi-cog", Administration: "pi-users", Devices: "pi-desktop",
+  };
+  function croAfterMount() {
+    document.getElementById("history-rows").innerHTML = HISTORY.map(h => `
+      <tr>
+        <td><div class="cell-primary"><span class="row-icon" style="background:var(--surface-600);"><i class="pi ${CATEGORY_ICON[h.category] || "pi-info-circle"}"></i></span>${h.task}</div></td>
+        <td>${h.category}</td>
+        <td class="cell-muted">${h.dt}</td>
+        <td class="cell-muted">${h.item}</td>
+        <td class="cell-muted">${h.user}</td>
+      </tr>
+    `).join("");
+  }
+  window.croAfterMount = croAfterMount;
+  window.CRO_PAGE_CONFIG = { page: "history", crumb: "History", title: "History" };
+</script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

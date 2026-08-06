@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>User Management · Cyber Range Orchestrator (Static Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+<template id="cro-page-template">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">User Management</h1>
+      <p class="page-subtitle">Accounts, roles, and access scopes for this Cyber Range Orchestrator instance.</p>
+    </div>
+    <button class="btn btn-primary" data-demo-toast="New user" data-demo-icon="pi-user-plus"><i class="pi pi-plus"></i> New User</button>
+  </div>
+
+  <div class="tabs" id="user-tabs">
+    <span class="tab active" data-tab="users">Users</span>
+    <span class="tab" data-tab="roles">Roles</span>
+  </div>
+
+  <div id="tab-users">
+    <table class="data-table">
+      <thead><tr><th style="width:28px;"><input type="checkbox" /></th><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Last Login</th></tr></thead>
+      <tbody id="user-rows"></tbody>
+    </table>
+  </div>
+
+  <div id="tab-roles" style="display:none;">
+    <div class="grid-3" id="role-grid"></div>
+  </div>
+</template>
+
+<script>
+  const USERS = [
+    { name: "Jane Doe", user: "jane.doe", role: "Admin", status: "active", last: "2026-08-06 09:02" },
+    { name: "Miho Tanaka", user: "mtanaka", role: "Range Builder", status: "active", last: "2026-08-05 17:40" },
+    { name: "Rafael Alvarez", user: "r.alvarez", role: "Range Builder", status: "active", last: "2026-08-04 12:11" },
+    { name: "Nana Osei", user: "n.osei", role: "Participant", status: "invited", last: "—" },
+    { name: "Tom Reyes", user: "treyes", role: "Participant", status: "disabled", last: "2026-06-11 08:03" },
+  ];
+  const STATUS_BADGE = {
+    active: '<span class="badge badge-success"><span class="dot"></span>Active</span>',
+    invited: '<span class="badge badge-warning"><span class="dot"></span>Invited</span>',
+    disabled: '<span class="badge badge-neutral"><span class="dot"></span>Disabled</span>',
+  };
+  const ROLES = [
+    { name: "Admin", desc: "Full access to all projects, devices, and system settings", count: 1 },
+    { name: "Range Builder", desc: "Create and edit projects, devices, and automation", count: 2 },
+    { name: "Participant", desc: "View and interact with assigned range sessions only", count: 2 },
+  ];
+
+  function croAfterMount() {
+    document.getElementById("user-rows").innerHTML = USERS.map(u => `
+      <tr>
+        <td onclick="event.stopPropagation()"><input type="checkbox" /></td>
+        <td><div class="cell-primary"><span class="avatar" style="width:28px;height:28px;font-size:.68rem;">${u.name.split(" ").map(p=>p[0]).join("")}</span>${u.name}</div></td>
+        <td class="cell-muted">${u.user}</td>
+        <td>${u.role}</td>
+        <td>${STATUS_BADGE[u.status]}</td>
+        <td class="cell-muted">${u.last}</td>
+      </tr>
+    `).join("");
+
+    document.getElementById("role-grid").innerHTML = ROLES.map(r => `
+      <div class="card card-pad">
+        <div style="font-weight:600;margin-bottom:.3rem;">${r.name}</div>
+        <div class="muted" style="font-size:.8rem;margin-bottom:.7rem;">${r.desc}</div>
+        <span class="badge badge-neutral">${r.count} user${r.count === 1 ? "" : "s"}</span>
+      </div>
+    `).join("");
+
+    document.querySelectorAll("#user-tabs .tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll("#user-tabs .tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById("tab-users").style.display = tab.dataset.tab === "users" ? "" : "none";
+        document.getElementById("tab-roles").style.display = tab.dataset.tab === "roles" ? "" : "none";
+      });
+    });
+  }
+  window.croAfterMount = croAfterMount;
+  window.CRO_PAGE_CONFIG = { page: "administration", crumb: "Administration / Users", title: "User Management" };
+</script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

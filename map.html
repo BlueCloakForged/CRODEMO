@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Map · Cyber Range Orchestrator (Static Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+<style>
+  .switch-btn.active { border-color: var(--primary-400); background: var(--primary-100); color: var(--primary-600); }
+  .beta-pill { font-size: .55rem; background: var(--warning-500); color: #fff; border-radius: 999px; padding: 0 .3rem; position: absolute; top: -6px; right: -6px; }
+  .zoom-pct { font-size: .68rem; text-align: center; color: var(--surface-500); padding: .1rem 0; }
+</style>
+</head>
+<body>
+<template id="cro-page-template">
+  <div class="map-shell">
+    <!-- Switch bar (Dashboard / Logical / Physical / Entity) -->
+    <div class="map-switchbar">
+      <button class="btn-icon" title="Dashboard" data-demo-toast="Dashboard view — read-only overview" data-demo-icon="pi-th-large"><i class="pi pi-th-large"></i></button>
+      <button class="btn-icon switch-btn active" title="Logical"><i class="pi pi-sitemap"></i></button>
+      <button class="btn-icon" style="position:relative;" title="Physical (Beta)" data-demo-toast="Physical view is in Beta" data-demo-icon="pi-server"><i class="pi pi-server"></i><span class="beta-pill">β</span></button>
+      <button class="btn-icon" style="position:relative;" title="Entity (Beta)" data-demo-toast="Entity view is in Beta" data-demo-icon="pi-users"><i class="pi pi-users"></i><span class="beta-pill">β</span></button>
+    </div>
+
+    <!-- Actions bar -->
+    <div class="map-actionsbar">
+      <div class="search-box" style="min-width:150px;padding:.3rem .55rem;">
+        <i class="pi pi-search"></i>
+        <input type="text" placeholder="Search map…" />
+      </div>
+      <button class="btn-icon" id="add-toggle" title="Add new element"><i class="pi pi-plus"></i></button>
+      <button class="btn-icon" title="Map styles" data-demo-toast="Map styles" data-demo-icon="pi-sliders-h"><i class="pi pi-sliders-h"></i></button>
+      <button class="btn-icon" title="Save" data-demo-toast="Map saved" data-demo-icon="pi-check"><i class="pi pi-save"></i></button>
+      <button class="btn-icon" title="Download" data-demo-toast="Exporting map…" data-demo-icon="pi-download"><i class="pi pi-download"></i></button>
+      <button class="btn-icon" title="Refresh" data-demo-toast="Map refreshed" data-demo-icon="pi-refresh"><i class="pi pi-refresh"></i></button>
+      <button class="btn-icon" title="Undo" data-demo-toast="Undo" data-demo-icon="pi-undo"><i class="pi pi-undo"></i></button>
+      <button class="btn-icon" title="Redo" data-demo-toast="Redo" data-demo-icon="pi-refresh"><i class="pi pi-replay"></i></button>
+      <button class="btn-icon" title="Connection" data-demo-toast="Click two nodes to connect them" data-demo-icon="pi-link"><i class="pi pi-link"></i></button>
+      <button class="btn-icon" title="Map settings" data-demo-toast="Map settings" data-demo-icon="pi-cog"><i class="pi pi-cog"></i></button>
+      <button class="btn-icon" id="lock-toggle" title="Lock map"><i class="pi pi-lock-open"></i></button>
+    </div>
+
+    <!-- Canvas -->
+    <div class="map-canvas" id="map-canvas">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" id="edge-svg"></svg>
+      <!-- nodes injected by JS -->
+    </div>
+
+    <!-- Zoom bar -->
+    <div class="map-zoombar">
+      <button class="btn-icon" id="zoom-in" title="Zoom in"><i class="pi pi-plus"></i></button>
+      <div class="zoom-pct" id="zoom-pct">100%</div>
+      <button class="btn-icon" id="zoom-out" title="Zoom out"><i class="pi pi-minus"></i></button>
+      <button class="btn-icon" id="zoom-fit" title="Fit / center"><i class="pi pi-window-maximize"></i></button>
+    </div>
+
+    <!-- Info bar -->
+    <div class="map-infobar" id="info-bar">
+      <span><b id="info-count">9</b> elements</span>
+      <span id="info-selected" class="muted">Click a node to inspect it</span>
+    </div>
+
+    <!-- Add panel -->
+    <div class="side-panel hidden" id="add-panel">
+      <div class="side-panel-head">
+        <h4>Add</h4>
+        <button class="btn-icon" id="add-panel-close"><i class="pi pi-times"></i></button>
+      </div>
+      <div class="tabs" style="margin: 0 1rem;">
+        <span class="tab active">Imagery</span>
+        <span class="tab">Template</span>
+      </div>
+      <div class="side-panel-body">
+        <div class="search-box" style="margin-bottom:.8rem;">
+          <i class="pi pi-search"></i>
+          <input type="text" placeholder="Search icons…" />
+        </div>
+        <div class="icon-grid" id="icon-grid"></div>
+        <p class="empty-hint" style="margin-top:.8rem;">Click a device below to drop it onto the canvas.</p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  const DEVICE_LIBRARY = [
+    { label: "Router", icon: "pi-directions-alt", color: "#0086BA" },
+    { label: "L3 Switch", icon: "pi-share-alt", color: "#132F4E" },
+    { label: "Firewall", icon: "pi-shield", color: "#BD271E" },
+    { label: "Windows Server", icon: "pi-server", color: "#008BBF" },
+    { label: "Linux Server", icon: "pi-server", color: "#37806A" },
+    { label: "Workstation", icon: "pi-desktop", color: "#4DAD90" },
+    { label: "Domain Controller", icon: "pi-id-card", color: "#006187" },
+    { label: "Internet Cloud", icon: "pi-cloud", color: "#7b7e81" },
+    { label: "IDS / IPS Sensor", icon: "pi-eye", color: "#E4852E" },
+    { label: "Load Balancer", icon: "pi-arrows-h", color: "#0086BA" },
+    { label: "Docker Host", icon: "pi-box", color: "#132F4E" },
+    { label: "pfSense", icon: "pi-shield", color: "#BD271E" },
+  ];
+
+  const NODES = [
+    { id: "internet", x: 50, y: 8,  label: "Internet",       sub: "0.0.0.0/0",       icon: "pi-cloud",       color: "#7b7e81" },
+    { id: "fw",       x: 50, y: 25, label: "edge-fw-01",     sub: "203.0.113.1",     icon: "pi-shield",      color: "#BD271E" },
+    { id: "core",     x: 50, y: 43, label: "core-sw-01",     sub: "L3 · VLAN trunk", icon: "pi-share-alt",   color: "#132F4E" },
+    { id: "dmzsw",    x: 26, y: 62, label: "dmz-sw-01",      sub: "VLAN 20",         icon: "pi-share-alt",   color: "#132F4E" },
+    { id: "corpsw",   x: 74, y: 62, label: "corp-sw-01",     sub: "VLAN 10",         icon: "pi-share-alt",   color: "#132F4E" },
+    { id: "web",      x: 13, y: 84, label: "web-01",         sub: "10.20.0.11 nginx",icon: "pi-server",      color: "#008BBF" },
+    { id: "mail",     x: 37, y: 84, label: "mail-01",        sub: "10.20.0.12 postfix", icon: "pi-server",   color: "#008BBF" },
+    { id: "dc",       x: 63, y: 84, label: "dc-01",          sub: "10.10.0.5 win2022", icon: "pi-id-card",   color: "#006187" },
+    { id: "ws1",      x: 85, y: 84, label: "ws-blue-01",     sub: "10.10.1.14",      icon: "pi-desktop",     color: "#4DAD90" },
+  ];
+
+  const EDGES = [
+    ["internet", "fw"], ["fw", "core"], ["core", "dmzsw"], ["core", "corpsw"],
+    ["dmzsw", "web"], ["dmzsw", "mail"], ["corpsw", "dc"], ["corpsw", "ws1"],
+  ];
+
+  let nodeSeq = 0;
+  let zoom = 100;
+
+  function nodeById(id) { return NODES.find(n => n.id === id); }
+
+  function renderEdges() {
+    const svg = document.getElementById("edge-svg");
+    svg.innerHTML = EDGES.map(([a, b]) => {
+      const na = nodeById(a), nb = nodeById(b);
+      if (!na || !nb) return "";
+      return `<line class="topo-edge" x1="${na.x}" y1="${na.y}" x2="${nb.x}" y2="${nb.y}" vector-effect="non-scaling-stroke" />`;
+    }).join("");
+  }
+
+  function renderNodes() {
+    const canvas = document.getElementById("map-canvas");
+    canvas.querySelectorAll(".topo-node").forEach(n => n.remove());
+    NODES.forEach(n => {
+      const el = document.createElement("div");
+      el.className = "topo-node" + (n.fresh ? " new-node" : "");
+      el.style.left = n.x + "%";
+      el.style.top = n.y + "%";
+      el.dataset.id = n.id;
+      el.innerHTML = `
+        <span class="ic" style="background:${n.color}"><i class="pi ${n.icon}"></i></span>
+        <span class="lbl"><b>${n.label}</b><span>${n.sub}</span></span>
+      `;
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.querySelectorAll(".topo-node.selected").forEach(x => x.classList.remove("selected"));
+        el.classList.add("selected");
+        document.getElementById("info-selected").innerHTML =
+          `Selected: <b>${n.label}</b> &nbsp;·&nbsp; ${n.sub}`;
+      });
+      canvas.appendChild(el);
+    });
+    document.getElementById("info-count").textContent = NODES.length;
+  }
+
+  function addDeviceToCanvas(device) {
+    nodeSeq += 1;
+    const id = "new-" + nodeSeq;
+    const x = 30 + Math.random() * 40;
+    const y = 20 + Math.random() * 55;
+    NODES.push({ id, x, y, label: `${device.label.toLowerCase().replace(/\s+/g, "-")}-0${nodeSeq}`, sub: "unconfigured", icon: device.icon, color: device.color, fresh: true });
+    EDGES.push(["core", id]);
+    renderEdges();
+    renderNodes();
+    croToast(`${device.label} added to canvas`, "pi-plus-circle");
+  }
+
+  function renderIconGrid() {
+    const grid = document.getElementById("icon-grid");
+    grid.innerHTML = DEVICE_LIBRARY.map((d, i) => `
+      <div class="icon-tile" data-idx="${i}">
+        <i class="pi ${d.icon}" style="color:${d.color}"></i>
+        <span>${d.label}</span>
+      </div>
+    `).join("");
+    grid.querySelectorAll(".icon-tile").forEach(tile => {
+      tile.addEventListener("click", () => addDeviceToCanvas(DEVICE_LIBRARY[+tile.dataset.idx]));
+    });
+  }
+
+  function croAfterMount() {
+    const params = new URLSearchParams(window.location.search);
+    const projectNames = {
+      "range-alpha": "Range Alpha — Enterprise Segment",
+      "phish-lab": "Phishing Response Lab",
+      "ics-sandbox": "ICS/SCADA Sandbox",
+      "ad-hardening": "Active Directory Hardening",
+      "cloud-perimeter": "Cloud Perimeter Exercise",
+    };
+    const projName = projectNames[params.get("project")] || "Range Alpha — Enterprise Segment";
+    document.querySelector(".crumb").innerHTML = `<a href="projects.html" style="color:var(--primary-500);text-decoration:none;">Projects</a> / <b>${projName}</b>`;
+
+    renderEdges();
+    renderNodes();
+    renderIconGrid();
+
+    const addPanel = document.getElementById("add-panel");
+    const addToggle = document.getElementById("add-toggle");
+    addToggle.addEventListener("click", () => {
+      addPanel.classList.toggle("hidden");
+      addToggle.classList.toggle("active");
+    });
+    document.getElementById("add-panel-close").addEventListener("click", () => {
+      addPanel.classList.add("hidden");
+      addToggle.classList.remove("active");
+    });
+
+    document.getElementById("map-canvas").addEventListener("click", () => {
+      document.querySelectorAll(".topo-node.selected").forEach(x => x.classList.remove("selected"));
+      document.getElementById("info-selected").textContent = "Click a node to inspect it";
+    });
+
+    const lockBtn = document.getElementById("lock-toggle");
+    let locked = false;
+    lockBtn.addEventListener("click", () => {
+      locked = !locked;
+      lockBtn.innerHTML = `<i class="pi ${locked ? "pi-lock" : "pi-lock-open"}"></i>`;
+      lockBtn.classList.toggle("active", locked);
+      croToast(locked ? "Map locked" : "Map unlocked", locked ? "pi-lock" : "pi-lock-open");
+    });
+
+    const canvasEl = document.getElementById("map-canvas");
+    const zoomPct = document.getElementById("zoom-pct");
+    const applyZoom = () => {
+      canvasEl.style.transform = `scale(${zoom / 100})`;
+      canvasEl.style.transformOrigin = "center center";
+      zoomPct.textContent = zoom + "%";
+    };
+    document.getElementById("zoom-in").addEventListener("click", () => { zoom = Math.min(200, zoom + 10); applyZoom(); });
+    document.getElementById("zoom-out").addEventListener("click", () => { zoom = Math.max(50, zoom - 10); applyZoom(); });
+    document.getElementById("zoom-fit").addEventListener("click", () => { zoom = 100; applyZoom(); croToast("Centered", "pi-window-maximize"); });
+  }
+  window.croAfterMount = croAfterMount;
+  window.CRO_PAGE_CONFIG = { page: "projects", crumb: "Projects / Loading…", title: "Map" };
+</script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

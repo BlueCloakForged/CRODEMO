@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Libraries · Cyber Range Orchestrator (Static Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+<template id="cro-page-template">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Libraries</h1>
+      <p class="page-subtitle">Shared media, lookup data, configuration templates, and tags used across projects.</p>
+    </div>
+    <button class="btn btn-primary" data-demo-toast="Upload" data-demo-icon="pi-upload">New <i class="pi pi-angle-down"></i></button>
+  </div>
+
+  <div class="tabs" id="lib-tabs">
+    <span class="tab" data-tab="media">Media</span>
+    <span class="tab" data-tab="lookup">Lookup</span>
+    <span class="tab" data-tab="config">Configuration</span>
+    <span class="tab" data-tab="tags">Tags</span>
+  </div>
+
+  <div id="tab-media" style="display:none;">
+    <div class="grid-3" id="media-grid"></div>
+  </div>
+
+  <div id="tab-lookup" style="display:none;">
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Type</th><th>Entries</th><th>Description</th></tr></thead>
+      <tbody id="lookup-rows"></tbody>
+    </table>
+  </div>
+
+  <div id="tab-config" style="display:none;">
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Applies To</th><th>Format</th><th>Tags</th></tr></thead>
+      <tbody id="config-rows"></tbody>
+    </table>
+  </div>
+
+  <div id="tab-tags" style="display:none;">
+    <div class="card card-pad" id="tags-cloud" style="display:flex;flex-wrap:wrap;gap:.5rem;"></div>
+  </div>
+</template>
+
+<script>
+  const MEDIA = [
+    { name: "cisco-router.svg", kind: "Icon", icon: "pi-directions-alt", color: "#0086BA" },
+    { name: "windows-11-bg.png", kind: "Image", icon: "pi-image", color: "#008BBF" },
+    { name: "corp-floorplan.png", kind: "Image", icon: "pi-image", color: "#37806A" },
+    { name: "firewall-generic.svg", kind: "Icon", icon: "pi-shield", color: "#BD271E" },
+    { name: "server-rack.svg", kind: "Icon", icon: "pi-server", color: "#132F4E" },
+    { name: "range-banner.png", kind: "Image", icon: "pi-image", color: "#E4852E" },
+  ];
+  const LOOKUPS = [
+    { name: "MAC OUI Vendors", type: "CSV", entries: 4820, desc: "Vendor prefixes used for randomized MAC assignment" },
+    { name: "Common Ports", type: "JSON", entries: 210, desc: "Well-known service ports for scan/config templates" },
+    { name: "Country IP Ranges", type: "CSV", entries: 1390, desc: "GeoIP block reference used in traffic simulation" },
+  ];
+  const CONFIGS = [
+    { name: "hardened-baseline.yml", applies: "Windows Server", format: "Ansible", tags: ["hardening"] },
+    { name: "nginx-reverse-proxy.j2", applies: "Linux Server", format: "Jinja2", tags: ["web", "dmz"] },
+    { name: "domain-join.ps1", applies: "Windows Workstation", format: "PowerShell", tags: ["identity"] },
+  ];
+  const TAGS = ["red-team", "blue-team", "purple-team", "enterprise", "ics", "cloud", "identity", "hardening", "training", "soc", "dmz", "isolated"];
+
+  function croAfterMount() {
+    document.getElementById("media-grid").innerHTML = MEDIA.map(m => `
+      <div class="card card-pad" style="text-align:center;">
+        <div class="row-icon" style="width:46px;height:46px;font-size:1.25rem;background:${m.color};margin:0 auto .6rem;"><i class="pi ${m.icon}"></i></div>
+        <div style="font-weight:600;font-size:.85rem;">${m.name}</div>
+        <div class="muted" style="font-size:.76rem;">${m.kind}</div>
+      </div>
+    `).join("");
+
+    document.getElementById("lookup-rows").innerHTML = LOOKUPS.map(l => `
+      <tr><td class="cell-primary">${l.name}</td><td>${l.type}</td><td class="cell-muted">${l.entries.toLocaleString()}</td><td class="cell-muted">${l.desc}</td></tr>
+    `).join("");
+
+    document.getElementById("config-rows").innerHTML = CONFIGS.map(c => `
+      <tr><td class="cell-primary">${c.name}</td><td class="cell-muted">${c.applies}</td><td>${c.format}</td><td>${c.tags.map(t => `<span class="chip">${t}</span>`).join("")}</td></tr>
+    `).join("");
+
+    document.getElementById("tags-cloud").innerHTML = TAGS.map(t => `<span class="chip" style="font-size:.8rem;padding:.35rem .8rem;">${t}</span>`).join("");
+
+    const tabs = document.querySelectorAll("#lib-tabs .tab");
+    function activate(key) {
+      tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === key));
+      ["media", "lookup", "config", "tags"].forEach(k => {
+        document.getElementById("tab-" + k).style.display = k === key ? "" : "none";
+      });
+    }
+    tabs.forEach(tab => tab.addEventListener("click", () => activate(tab.dataset.tab)));
+
+    const params = new URLSearchParams(window.location.search);
+    activate(params.get("tab") && ["media","lookup","config","tags"].includes(params.get("tab")) ? params.get("tab") : "media");
+  }
+  window.croAfterMount = croAfterMount;
+  window.CRO_PAGE_CONFIG = { page: "libraries", crumb: "Libraries", title: "Libraries" };
+</script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

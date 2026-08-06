@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Logins · Cyber Range Orchestrator (Static Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+<template id="cro-page-template">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Logins</h1>
+      <p class="page-subtitle">Connection profiles, credential sets, and SSH keys used to reach range hosts.</p>
+    </div>
+    <button class="btn btn-primary" data-demo-toast="New login resource" data-demo-icon="pi-plus">New <i class="pi pi-angle-down"></i></button>
+  </div>
+
+  <div class="tabs" id="login-tabs">
+    <span class="tab" data-tab="connections">Connection Profiles</span>
+    <span class="tab" data-tab="logins">Login Profiles</span>
+    <span class="tab" data-tab="ssh">SSH Keys</span>
+  </div>
+
+  <div id="tab-connections" style="display:none;">
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Protocol</th><th>Port</th><th>Used By</th></tr></thead>
+      <tbody id="connections-rows"></tbody>
+    </table>
+  </div>
+
+  <div id="tab-logins" style="display:none;">
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Username</th><th>Auth Type</th><th>Tags</th></tr></thead>
+      <tbody id="logins-rows"></tbody>
+    </table>
+  </div>
+
+  <div id="tab-ssh" style="display:none;">
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Fingerprint</th><th>Type</th><th>Added</th></tr></thead>
+      <tbody id="ssh-rows"></tbody>
+    </table>
+  </div>
+</template>
+
+<script>
+  const CONNECTIONS = [
+    { name: "RDP — Windows Hosts", proto: "RDP", port: 3389, usedBy: 14 },
+    { name: "SSH — Linux Hosts", proto: "SSH", port: 22, usedBy: 22 },
+    { name: "WinRM — Automation", proto: "WinRM", port: 5985, usedBy: 9 },
+    { name: "VNC — Console Fallback", proto: "VNC", port: 5900, usedBy: 3 },
+  ];
+  const LOGIN_PROFILES = [
+    { name: "local-admin", user: "administrator", auth: "Password", tags: ["windows"] },
+    { name: "cloud-user", user: "ubuntu", auth: "SSH Key", tags: ["linux", "cloud-init"] },
+    { name: "domain-user", user: "corp\\svc-range", auth: "Password", tags: ["identity"] },
+    { name: "pfsense-admin", user: "admin", auth: "Password", tags: ["network"] },
+  ];
+  const SSH_KEYS = [
+    { name: "range-automation-key", fp: "SHA256:9f2c…a41e", type: "ed25519", added: "2026-03-04" },
+    { name: "instructor-access", fp: "SHA256:1b7d…c920", type: "rsa-4096", added: "2026-01-19" },
+  ];
+
+  function croAfterMount() {
+    document.getElementById("connections-rows").innerHTML = CONNECTIONS.map(c => `
+      <tr><td class="cell-primary">${c.name}</td><td>${c.proto}</td><td class="cell-muted">${c.port}</td><td class="cell-muted">${c.usedBy} devices</td></tr>
+    `).join("");
+    document.getElementById("logins-rows").innerHTML = LOGIN_PROFILES.map(l => `
+      <tr><td class="cell-primary">${l.name}</td><td class="cell-muted">${l.user}</td><td>${l.auth}</td><td>${l.tags.map(t=>`<span class="chip">${t}</span>`).join("")}</td></tr>
+    `).join("");
+    document.getElementById("ssh-rows").innerHTML = SSH_KEYS.map(k => `
+      <tr><td class="cell-primary">${k.name}</td><td class="cell-muted" style="font-family:var(--font-mono);font-size:.76rem;">${k.fp}</td><td>${k.type}</td><td class="cell-muted">${k.added}</td></tr>
+    `).join("");
+
+    const tabs = document.querySelectorAll("#login-tabs .tab");
+    function activate(key) {
+      tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === key));
+      ["connections", "logins", "ssh"].forEach(k => {
+        document.getElementById("tab-" + k).style.display = k === key ? "" : "none";
+      });
+    }
+    tabs.forEach(tab => tab.addEventListener("click", () => activate(tab.dataset.tab)));
+    const params = new URLSearchParams(window.location.search);
+    activate(params.get("tab") && ["connections","logins","ssh"].includes(params.get("tab")) ? params.get("tab") : "connections");
+  }
+  window.croAfterMount = croAfterMount;
+  window.CRO_PAGE_CONFIG = { page: "logins", crumb: "Logins", title: "Logins" };
+</script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

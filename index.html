@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Login · Cyber Range Orchestrator (Static Demo)</title>
+<meta name="description" content="Static, click-through demo of Cyber Range Orchestrator — no backend, no live data." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+<div class="demo-banner">
+  <span class="dot"></span>
+  <span><strong>Static Demo</strong> — Cyber Range Orchestrator. No backend, no live data; every screen is a mock.</span>
+  <a class="gh-link" href="README.html">About this demo →</a>
+</div>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="assets/img/login-logo.png" alt="Cyber Range Orchestrator" />
+    </div>
+    <h1>Login</h1>
+    <form id="login-form" autocomplete="off">
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" type="text" value="jane.doe" />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" value="••••••••" />
+      </div>
+      <div class="field-check">
+        <input type="checkbox" id="ldap" />
+        <label for="ldap" style="margin:0;">LDAP authentication.</label>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="pi pi-sign-in"></i> Login
+      </button>
+    </form>
+    <p class="login-hint">This is a static walkthrough — any credentials will "log in." Nothing is sent anywhere.</p>
+  </div>
+</div>
+
+<script>
+  document.getElementById("login-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    window.location.href = "home.html";
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>About this demo · Cyber Range Orchestrator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+<style>
+  .about-wrap { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+  .about-wrap h1 { font-size: 1.7rem; font-weight: 600; margin-bottom: .3rem; }
+  .about-wrap .lead { color: var(--surface-500); margin-bottom: 2rem; }
+  .about-wrap h2 { font-size: 1.05rem; font-weight: 600; margin: 2rem 0 .7rem; }
+  .about-wrap p, .about-wrap li { color: var(--surface-700); font-size: .92rem; line-height: 1.6; }
+  .about-wrap ul { padding-left: 1.2rem; }
+  .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+  .scope-card { border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.1rem; background: var(--surface-0); }
+  .scope-card h3 { margin: 0 0 .5rem; font-size: .85rem; }
+  .scope-card.yes h3 { color: var(--success-500); }
+  .scope-card.no h3 { color: var(--error-500); }
+  .scope-card ul { margin: 0; font-size: .82rem; }
+  .cta-row { display: flex; gap: .8rem; margin-top: 2rem; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="demo-banner">
+  <span class="dot"></span>
+  <span><strong>Static Demo</strong> — Cyber Range Orchestrator. No backend, no live data; every screen is a mock.</span>
+</div>
+<div class="about-wrap">
+  <h1>About this demo</h1>
+  <p class="lead">A precomputed, click-through walkthrough of the Cyber Range Orchestrator (CRO) UI — built directly from the application's real screens, navigation, and terminology so it represents what the product actually looks and feels like.</p>
+
+  <h2>What CRO is</h2>
+  <p>Cyber Range Orchestrator is a platform for designing, deploying, and running cyber ranges: isolated virtual networks used for security training, red/blue exercises, and research. Users build a network topology on a canvas (routers, switches, firewalls, servers, workstations), attach device templates and credentials, run Ansible automation against deployed hosts, and schedule tasks like snapshots or power cycles.</p>
+
+  <h2>What this demo shows</h2>
+  <div class="scope-grid">
+    <div class="scope-card yes">
+      <h3>In scope</h3>
+      <ul>
+        <li>Real navigation structure and page layout</li>
+        <li>The topology / map editor, with a sample range and a working "add device" panel</li>
+        <li>Projects, Devices, Libraries, Logins, Automation, Tasks, History, Users, Settings</li>
+        <li>Sample, invented data — no real hosts, credentials, or customers</li>
+      </ul>
+    </div>
+    <div class="scope-card no">
+      <h3>Out of scope</h3>
+      <ul>
+        <li>No backend — nothing is deployed, saved, or provisioned</li>
+        <li>No authentication — the login screen accepts anything</li>
+        <li>No live automation — Ansible runs and dry-runs are pre-scripted</li>
+        <li>Not every sub-screen of the real app is reproduced</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>How to use it</h2>
+  <p>Start at the login screen and click through as you would in the real app: log in, create or open a project, drop a device onto the map, open a playbook, schedule a task. Buttons that don't lead anywhere in this demo (Save, Refresh, New User, etc.) show a small toast confirming the click, rather than doing nothing.</p>
+
+  <div class="cta-row">
+    <a class="btn btn-primary" href="index.html"><i class="pi pi-sign-in"></i> Start the walkthrough</a>
+    <a class="btn btn-outline" href="home.html"><i class="pi pi-home"></i> Skip to Home</a>
+  </div>
+</div>
+</body>
+</html>

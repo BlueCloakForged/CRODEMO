@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Settings · Cyber Range Orchestrator (Static Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+<style>
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: .9rem 0; border-bottom: 1px solid var(--border-color); }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row .t { font-size: .86rem; font-weight: 500; color: var(--surface-800); }
+  .settings-row .d { font-size: .78rem; color: var(--surface-500); }
+  .switch { width: 40px; height: 22px; border-radius: 999px; background: var(--surface-200); position: relative; cursor: pointer; flex: none; border: none; }
+  .switch::after { content:""; position:absolute; width:18px; height:18px; border-radius:50%; background:#fff; top:2px; left:2px; transition: left .12s; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+  .switch.on { background: var(--primary-500); }
+  .switch.on::after { left: 20px; }
+</style>
+</head>
+<body>
+<template id="cro-page-template">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Settings</h1>
+      <p class="page-subtitle">Instance-wide preferences: appearance, authentication, and default map behavior.</p>
+    </div>
+  </div>
+
+  <div class="tabs" id="settings-tabs">
+    <span class="tab active" data-tab="preferences">App Preferences</span>
+    <span class="tab" data-tab="ldap">LDAP</span>
+    <span class="tab" data-tab="map">Map Preferences</span>
+  </div>
+
+  <div class="card card-pad" id="tab-preferences">
+    <div class="settings-row">
+      <div><div class="t">Dark mode</div><div class="d">Switch the UI between light and dark themes</div></div>
+      <button class="switch" id="pref-dark"></button>
+    </div>
+    <div class="settings-row">
+      <div><div class="t">Compact sidebar by default</div><div class="d">Start with the navigation rail collapsed</div></div>
+      <button class="switch on" data-demo-toast="Preference saved" data-demo-icon="pi-check"></button>
+    </div>
+    <div class="settings-row">
+      <div><div class="t">Show notifications toasts</div><div class="d">Display in-app notifications for background tasks</div></div>
+      <button class="switch on" data-demo-toast="Preference saved" data-demo-icon="pi-check"></button>
+    </div>
+    <div class="settings-row">
+      <div><div class="t">Auto-save maps</div><div class="d">Periodically save topology changes while editing</div></div>
+      <button class="switch" data-demo-toast="Preference saved" data-demo-icon="pi-check"></button>
+    </div>
+  </div>
+
+  <div class="card card-pad" id="tab-ldap" style="display:none;">
+    <div class="settings-row">
+      <div><div class="t">Enable LDAP authentication</div><div class="d">Allow login via the organization's LDAP / Active Directory</div></div>
+      <button class="switch on" data-demo-toast="LDAP setting saved" data-demo-icon="pi-check"></button>
+    </div>
+    <div class="settings-row"><div><div class="t">Server URI</div><div class="d">ldaps://ldap.corp.range.local:636</div></div></div>
+    <div class="settings-row"><div><div class="t">Bind DN</div><div class="d">cn=svc-cro,ou=service,dc=corp,dc=range,dc=local</div></div></div>
+    <div class="settings-row"><div><div class="t">User search base</div><div class="d">ou=people,dc=corp,dc=range,dc=local</div></div></div>
+  </div>
+
+  <div class="card card-pad" id="tab-map" style="display:none;">
+    <div class="settings-row">
+      <div><div class="t">Default layout</div><div class="d">Layout algorithm used when creating a new project map</div></div>
+      <span class="badge badge-neutral">Hierarchical</span>
+    </div>
+    <div class="settings-row">
+      <div><div class="t">Grid snapping</div><div class="d">Snap nodes to a grid while dragging on the canvas</div></div>
+      <button class="switch on" data-demo-toast="Preference saved" data-demo-icon="pi-check"></button>
+    </div>
+    <div class="settings-row">
+      <div><div class="t">Show beta views (Physical / Entity)</div><div class="d">Expose in-progress map views in the switch bar</div></div>
+      <button class="switch" data-demo-toast="Preference saved" data-demo-icon="pi-check"></button>
+    </div>
+    <div class="flex" style="justify-content:flex-end;margin-top:.8rem;">
+      <a href="#" class="btn btn-outline btn-sm" data-demo-toast="Opens the map preference form" data-demo-icon="pi-plus">Add map preference profile</a>
+    </div>
+  </div>
+</template>
+
+<script>
+  function croAfterMount() {
+    document.querySelectorAll("#settings-tabs .tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll("#settings-tabs .tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        ["preferences", "ldap", "map"].forEach(k => {
+          document.getElementById("tab-" + k).style.display = k === tab.dataset.tab ? "" : "none";
+        });
+      });
+    });
+
+    const darkSwitch = document.getElementById("pref-dark");
+    const syncDarkSwitch = () => {
+      const t = document.documentElement.getAttribute("data-theme") ||
+        (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      darkSwitch.classList.toggle("on", t === "dark");
+    };
+    syncDarkSwitch();
+    darkSwitch.addEventListener("click", () => {
+      document.getElementById("theme-toggle").click();
+      syncDarkSwitch();
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("activeTab");
+    if (tab === "app-preferences") document.querySelector('[data-tab="preferences"]').click();
+  }
+  window.croAfterMount = croAfterMount;
+  window.CRO_PAGE_CONFIG = { page: "settings", crumb: "Settings", title: "Settings" };
+</script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Devices · Cyber Range Orchestrator (Static Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+<template id="cro-page-template">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Devices</h1>
+      <p class="page-subtitle">Reusable OS images, install templates, and physical hardware profiles.</p>
+    </div>
+    <button class="btn btn-primary" data-demo-toast="New device template" data-demo-icon="pi-plus">New Template <i class="pi pi-angle-down"></i></button>
+  </div>
+
+  <div class="tabs" id="device-tabs">
+    <span class="tab active" data-tab="templates">Device Templates</span>
+    <span class="tab" data-tab="categories">Device Categories</span>
+    <span class="tab" data-tab="hardware">Hardware</span>
+  </div>
+
+  <div id="tab-templates">
+    <div class="table-toolbar">
+      <div class="search-box"><i class="pi pi-search"></i><input type="text" placeholder="Search templates…" /></div>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:28px;"><input type="checkbox" /></th>
+          <th>Display Name</th>
+          <th>Installer / Template</th>
+          <th>Category</th>
+          <th>Login Profile</th>
+          <th>Format</th>
+          <th>Cloud-Init</th>
+          <th>Tags</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div id="tab-categories" style="display:none;">
+    <div class="grid-3" id="category-grid"></div>
+  </div>
+
+  <div id="tab-hardware" style="display:none;">
+    <table class="data-table">
+      <thead>
+        <tr><th>Display Name</th><th>Vendor</th><th>Model</th><th>Ports</th><th>Location</th></tr>
+      </thead>
+      <tbody id="hardware-rows"></tbody>
+    </table>
+  </div>
+</template>
+
+<script>
+  const TEMPLATES = [
+    { name: "Windows Server 2022", installer: "win2022-std.iso", cat: "Server", icon: "pi-microsoft", color: "#008BBF", login: "local-admin", format: "QCOW2", cloudInit: false, tags: ["windows", "server"] },
+    { name: "Ubuntu 22.04 LTS", installer: "ubuntu-22.04-server", cat: "Server", icon: "pi-server", color: "#37806A", login: "cloud-user", format: "QCOW2", cloudInit: true, tags: ["linux", "server"] },
+    { name: "Kali Linux Attacker", installer: "kali-rolling", cat: "Workstation", icon: "pi-shield", color: "#BD271E", login: "kali-user", format: "OVA", cloudInit: false, tags: ["red-team"] },
+    { name: "Windows 11 Enterprise", installer: "win11-ent.iso", cat: "Workstation", icon: "pi-desktop", color: "#4DAD90", login: "domain-user", format: "QCOW2", cloudInit: false, tags: ["windows", "endpoint"] },
+    { name: "pfSense Firewall", installer: "pfsense-2.7", cat: "Network", icon: "pi-shield", color: "#E4852E", login: "pfsense-admin", format: "IMG", cloudInit: false, tags: ["firewall", "network"] },
+    { name: "Security Onion", installer: "securityonion-2.4", cat: "Server", icon: "pi-eye", color: "#0086BA", login: "so-analyst", format: "OVA", cloudInit: false, tags: ["ids", "blue-team"] },
+  ];
+
+  const CATEGORIES = [
+    { name: "Server", count: 18, icon: "pi-server" },
+    { name: "Workstation", count: 24, icon: "pi-desktop" },
+    { name: "Network", count: 9, icon: "pi-share-alt" },
+  ];
+
+  const HARDWARE = [
+    { name: "cro-hv-01", vendor: "Dell", model: "PowerEdge R750", ports: 4, loc: "Rack A1" },
+    { name: "cro-hv-02", vendor: "Dell", model: "PowerEdge R750", ports: 4, loc: "Rack A2" },
+    { name: "core-switch-01", vendor: "Cisco", model: "Catalyst 9300", ports: 48, loc: "Rack B1" },
+  ];
+
+  function croAfterMount() {
+    document.querySelector("#tab-templates tbody").innerHTML = TEMPLATES.map(t => `
+      <tr>
+        <td onclick="event.stopPropagation()"><input type="checkbox" /></td>
+        <td><div class="cell-primary"><span class="row-icon" style="background:${t.color}"><i class="pi ${t.icon}"></i></span>${t.name}</div></td>
+        <td class="cell-muted">${t.installer}</td>
+        <td>${t.cat}</td>
+        <td class="cell-muted">${t.login}</td>
+        <td class="cell-muted">${t.format}</td>
+        <td>${t.cloudInit ? '<span class="badge badge-success"><span class="dot"></span>Enabled</span>' : '<span class="badge badge-neutral">—</span>'}</td>
+        <td>${t.tags.map(x => `<span class="chip">${x}</span>`).join("")}</td>
+      </tr>
+    `).join("");
+
+    document.getElementById("category-grid").innerHTML = CATEGORIES.map(c => `
+      <div class="card card-pad" style="text-align:center;">
+        <div class="row-icon" style="width:44px;height:44px;font-size:1.2rem;background:var(--primary-500);margin:0 auto .7rem;"><i class="pi ${c.icon}"></i></div>
+        <div style="font-weight:600;">${c.name}</div>
+        <div class="muted" style="font-size:.8rem;">${c.count} templates</div>
+      </div>
+    `).join("");
+
+    document.getElementById("hardware-rows").innerHTML = HARDWARE.map(h => `
+      <tr><td class="cell-primary">${h.name}</td><td class="cell-muted">${h.vendor}</td><td class="cell-muted">${h.model}</td><td class="cell-muted">${h.ports}</td><td class="cell-muted">${h.loc}</td></tr>
+    `).join("");
+
+    document.querySelectorAll("#device-tabs .tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll("#device-tabs .tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        ["templates", "categories", "hardware"].forEach(key => {
+          document.getElementById("tab-" + key).style.display = key === tab.dataset.tab ? "" : "none";
+        });
+      });
+    });
+  }
+  window.croAfterMount = croAfterMount;
+  window.CRO_PAGE_CONFIG = { page: "devices", crumb: "Devices", title: "Devices" };
+</script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

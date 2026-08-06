@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Automation · Cyber Range Orchestrator (Static Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7/primeicons.css">
+<link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+<template id="cro-page-template">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Automation · Ansible</h1>
+      <p class="page-subtitle">Playbooks used to configure, harden, and inject scenario content into deployed hosts.</p>
+    </div>
+    <button class="btn btn-primary" data-demo-toast="New playbook" data-demo-icon="pi-plus">New Playbook</button>
+  </div>
+
+  <table class="data-table" id="playbook-table">
+    <thead><tr><th>Name</th><th>Target Category</th><th>Last Run</th><th>Status</th><th></th></tr></thead>
+    <tbody id="playbook-rows"></tbody>
+  </table>
+
+  <div class="card card-pad" style="margin-top:1.4rem;" id="editor-panel">
+    <div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:.8rem;">
+      <div>
+        <div style="font-weight:600;" id="editor-title">harden-windows-baseline.yml</div>
+        <div class="muted" style="font-size:.78rem;">Ansible Editor — read-only preview</div>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-outline btn-sm" data-demo-toast="Dry run started" data-demo-icon="pi-play"><i class="pi pi-play"></i> Dry Run</button>
+        <button class="btn btn-outline btn-sm" data-demo-toast="Saved" data-demo-icon="pi-check"><i class="pi pi-save"></i> Save</button>
+      </div>
+    </div>
+    <div class="code-block" id="editor-code"></div>
+
+    <div style="margin-top:1rem;">
+      <div class="muted" style="font-size:.78rem;margin-bottom:.5rem;">Dry-run result (simulated)</div>
+      <table class="data-table">
+        <thead><tr><th>Task</th><th>Host</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Disable SMBv1</td><td class="cell-muted">dc-01</td><td><span class="badge badge-success"><span class="dot"></span>changed</span></td></tr>
+          <tr><td>Enforce password policy</td><td class="cell-muted">dc-01</td><td><span class="badge badge-neutral">ok</span></td></tr>
+          <tr><td>Install Sysmon</td><td class="cell-muted">ws-blue-01</td><td><span class="badge badge-success"><span class="dot"></span>changed</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</template>
+
+<script>
+  const PLAYBOOKS = [
+    { name: "harden-windows-baseline.yml", target: "Windows Server", last: "2026-08-05 14:12", status: "success",
+      yaml: `<span class="c">---</span>\n<span class="k">- hosts:</span> <span class="s">windows_servers</span>\n  <span class="k">tasks:</span>\n    <span class="k">- name:</span> <span class="s">Disable SMBv1</span>\n      <span class="k">win_optional_feature:</span>\n        <span class="k">name:</span> <span class="s">SMB1Protocol</span>\n        <span class="k">state:</span> <span class="s">absent</span>\n\n    <span class="k">- name:</span> <span class="s">Enforce password policy</span>\n      <span class="k">win_security_policy:</span>\n        <span class="k">min_password_length:</span> <span class="s">14</span>` },
+    { name: "deploy-sysmon.yml", target: "Windows Workstation", last: "2026-08-04 09:41", status: "success",
+      yaml: `<span class="c">---</span>\n<span class="k">- hosts:</span> <span class="s">workstations</span>\n  <span class="k">tasks:</span>\n    <span class="k">- name:</span> <span class="s">Install Sysmon</span>\n      <span class="k">win_package:</span>\n        <span class="k">path:</span> <span class="s">files/Sysmon64.exe</span>\n        <span class="k">arguments:</span> <span class="s">-accepteula -i sysmonconfig.xml</span>` },
+    { name: "nginx-dmz-setup.yml", target: "Linux Server", last: "2026-08-03 21:05", status: "warning",
+      yaml: `<span class="c">---</span>\n<span class="k">- hosts:</span> <span class="s">dmz_web</span>\n  <span class="k">tasks:</span>\n    <span class="k">- name:</span> <span class="s">Install nginx</span>\n      <span class="k">apt:</span>\n        <span class="k">name:</span> <span class="s">nginx</span>\n        <span class="k">state:</span> <span class="s">present</span>` },
+    { name: "domain-join.yml", target: "Windows Workstation", last: "2026-07-30 16:22", status: "failed",
+      yaml: `<span class="c">---</span>\n<span class="k">- hosts:</span> <span class="s">workstations</span>\n  <span class="k">tasks:</span>\n    <span class="k">- name:</span> <span class="s">Join domain</span>\n      <span class="k">win_domain_membership:</span>\n        <span class="k">dns_domain_name:</span> <span class="s">corp.range.local</span>` },
+  ];
+
+  const STATUS_BADGE = {
+    success: '<span class="badge badge-success"><span class="dot"></span>Success</span>',
+    warning: '<span class="badge badge-warning"><span class="dot"></span>Warnings</span>',
+    failed: '<span class="badge badge-error"><span class="dot"></span>Failed</span>',
+  };
+
+  function openEditor(i) {
+    const pb = PLAYBOOKS[i];
+    document.getElementById("editor-title").textContent = pb.name;
+    document.getElementById("editor-code").innerHTML = pb.yaml;
+    document.getElementById("editor-panel").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function croAfterMount() {
+    document.getElementById("playbook-rows").innerHTML = PLAYBOOKS.map((p, i) => `
+      <tr onclick="openEditor(${i})">
+        <td><div class="cell-primary"><span class="row-icon" style="background:var(--primary-500);"><i class="pi pi-file"></i></span>${p.name}</div></td>
+        <td class="cell-muted">${p.target}</td>
+        <td class="cell-muted">${p.last}</td>
+        <td>${STATUS_BADGE[p.status]}</td>
+        <td onclick="event.stopPropagation()"><div class="row-actions"><button class="btn-icon" title="Edit" onclick="openEditor(${i})"><i class="pi pi-pencil"></i></button></div></td>
+      </tr>
+    `).join("");
+    window.openEditor = openEditor;
+    openEditor(0);
+  }
+  window.croAfterMount = croAfterMount;
+  window.CRO_PAGE_CONFIG = { page: "automation", crumb: "Automation / Ansible", title: "Automation" };
+</script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
