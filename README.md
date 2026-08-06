@@ -10,7 +10,7 @@ and research. Ranges are designed on a topology canvas, provisioned from
 reusable device templates, configured with Ansible, and controlled with
 scheduled tasks.
 
-[Static Demo](https://<org>.github.io/<repo>/) |
+[Static Demo](https://bluecloakforged.github.io/CRODEMO/) |
 [What CRO Does](#what-cro-does) |
 [Demo Scope](#demo-scope) |
 [Screens](#screens-in-this-demo) |
@@ -21,7 +21,7 @@ scheduled tasks.
 ## Static Public Demo
 
 A static, precomputed demo of the CRO UI is available at
-**[⟶ Static Demo](https://<org>.github.io/<repo>/)**.
+**[⟶ Static Demo](https://bluecloakforged.github.io/CRODEMO/)**.
 
 It reproduces the real application's navigation, layout, and terminology —
 login, projects, the topology/map editor, devices, automation, tasks, and
@@ -30,9 +30,6 @@ does not authenticate, does not deploy or provision anything, and does not
 run real Ansible automation. It exists so someone outside the project can
 click through and understand what the product does without needing an
 account, a lab, or the source tree running.
-
-> Replace `https://<org>.github.io/<repo>/` above with the actual GitHub
-> Pages URL once this demo is pushed to its own repository.
 
 ## What CRO Does
 
@@ -79,9 +76,5 @@ Or just open `index.html` directly in a browser.
 
 ## Publishing to GitHub Pages
 
-1. Push the contents of this `static-demo/` folder to a repository (as the
-   repo root, or under `/docs`).
-2. In the repo's **Settings → Pages**, set the source to that
-   branch/folder.
-3. Update the `Static Demo` link at the top of this README with the
-   published `https://<org>.github.io/<repo>/` URL.
+This repo is published via GitHub Pages from the `main` branch root at
+**https://bluecloakforged.github.io/CRODEMO/**.
